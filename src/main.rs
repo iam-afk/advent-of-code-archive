@@ -87,5 +87,7 @@ fn main() {
         }
         line.clear();
     }
+    let signal_a = get(&wires, "a");
+    wires.insert("b".to_string(), Direct(Signal(signal_a)));
     println!("{:?}", get(&wires, "a"));
 }
