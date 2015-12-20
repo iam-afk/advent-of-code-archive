@@ -7,17 +7,15 @@ fn main() {
     while stdin.read_line(&mut line).unwrap() > 0 {
         {
             let s = line.trim();
-            answer += s.len() + 2;
             let mut chars = s.chars();
             while let Some(c) = chars.next() {
-                if c == '\\' {
-                    if let Some('x') = chars.next() {
-                        chars.next();
-                        chars.next();
-                    }
-                };
-                answer -= 1
+                answer += match c {
+                    '"' | '\\' => 2,
+                    _ => 1
+                }
             }
+            answer += 2;
+            answer -= s.len();
         }
         line.clear();
     }
