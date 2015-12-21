@@ -1,4 +1,4 @@
-use std::cmp::min;
+use std::cmp::max;
 use std::collections::HashMap;
 use std::io;
 
@@ -34,22 +34,22 @@ fn main() {
         if n == N {
             return d;
         }
-        let mut answer = usize::max_value();
+        let mut answer = 0;
         was[v] = true;
         for i in 0..N {
             if !was[i] {
                 was[i] = true;
-                answer = min(answer, find(i, n + 1, d + g[v][i], g, was));
+                answer = max(answer, find(i, n + 1, d + g[v][i], g, was));
                 was[i] = false;
             }
         }
         answer
     }
 
-    let mut answer = usize::max_value();
+    let mut answer = 0;
     for s in 0..N {
         let mut was = [false; N];
-        answer = min(answer, find(s, 1, 0, &g, &mut was));
+        answer = max(answer, find(s, 1, 0, &g, &mut was));
     }
 
     println!("{:?}", answer);
