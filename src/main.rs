@@ -36,8 +36,8 @@ fn get(wires: &HashMap<String, Op>, wire: &str) -> u16 {
     let mut cache = HashMap::new();
 
     fn calc(wires: &HashMap<String, Op>, wire: &str, cache: &mut HashMap<String, u16>) -> u16 {
-        if cache.contains_key(wire) {
-            return *cache.get(wire).unwrap();
+        if let Some(&signal) = cache.get(wire) {
+            return signal;
         }
         let signal = match wires.get(wire).unwrap() {
             &Direct(ref source) => f(source, wires, cache),
