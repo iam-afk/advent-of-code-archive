@@ -5,7 +5,7 @@ fn main() {
     io::stdin().read_line(&mut line).unwrap();
     let mut origin = line.trim().to_string();
     let mut answer = 0;
-    for _ in 0..40 {
+    for _ in 0..50 {
         let mut result = String::new();
         {
             let mut chars = origin.chars();
