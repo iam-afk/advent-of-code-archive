@@ -4,7 +4,7 @@ const O: u8 = 'o' as u8 - A;
 const L: u8 = 'l' as u8 - A;
 
 fn main() {
-    let mut pwd: Vec<u8> = "cqjxjnds".as_bytes()
+    let mut pwd: Vec<u8> = "cqjxxyzz".as_bytes()
         .iter()
         .map(|&x| x - A)
         .collect();
