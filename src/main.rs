@@ -24,8 +24,8 @@ fn main() {
         let mut red = false;
         loop {
             match chars.peek() {
-                Some(&c) if c == '}' => { chars.next(); break },
-                Some(&c) if c == ',' => { chars.next(); },
+                Some(&'}') => { chars.next(); break },
+                Some(&',') => { chars.next(); },
                 _ => {
                     string(chars);
                     assert!(':' == chars.next().unwrap());
@@ -45,21 +45,22 @@ fn main() {
         let mut sum = 0i64;
         loop {
             match chars.peek() {
-                Some(&c) if c == ']' => { chars.next(); return sum },
-                Some(&c) if c == ',' => { chars.next(); },
+                Some(&']') => { chars.next(); break },
+                Some(&',') => { chars.next(); },
                 _ => match value(chars) {
                     Int(v) => sum += v,
                     _ => ()
                 }
             };
         }
+        sum
     }
 
     fn value(chars: &mut Lexer) -> Value {
         match chars.peek() {
-            Some(&c) if c == '"' => Str(string(chars)),
-            Some(&c) if c == '{' => Int(object(chars)),
-            Some(&c) if c == '[' => Int(array(chars)),
+            Some(&'"') => Str(string(chars)),
+            Some(&'{') => Int(object(chars)),
+            Some(&'[') => Int(array(chars)),
             Some(&c) if c == '-' || c.is_digit(10) => Int(number(chars)),
             _ => unreachable!()
         }
@@ -70,9 +71,9 @@ fn main() {
         let mut value = String::new();
         loop {
             match chars.next() {
-                None => unreachable!(),
                 Some('"') => break,
                 Some(c) => value.push(c),
+                _ => unreachable!(),
             };
         };
         value
@@ -95,8 +96,8 @@ fn main() {
     }
 
     let answer = match chars.peek() {
-        Some(&c) if c == '{' => object(&mut chars),
-        Some(&c) if c == '[' => array(&mut chars),
+        Some(&'{') => object(&mut chars),
+        Some(&'[') => array(&mut chars),
         _ => unreachable!()
     };
 
