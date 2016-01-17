@@ -5,7 +5,7 @@ use std::cmp;
 static IGNORED: &'static [char] = &['.', '\n'];
 
 fn main() {
-    let mut g = [[0i32; 8]; 8];
+    let mut g = [[0i32; 9]; 9];
     let mut names = HashMap::new();
 
     {
@@ -31,7 +31,7 @@ fn main() {
         }
     }
 
-    fn sit_from(k: usize, n: usize, u: &mut [usize; 8], g: &[[i32; 8]; 8]) -> i32 {
+    fn sit_from(k: usize, n: usize, u: &mut [usize; 9], g: &[[i32; 9]; 9]) -> i32 {
         if k < n {
             let mut result = i32::min_value();
             for i in 0..n {
@@ -51,6 +51,6 @@ fn main() {
             happiness
         }
     }
-    let mut u = [usize::max_value(); 8];
-    println!("{}", sit_from(0, names.len(), &mut u, &g));
+    let mut u = [usize::max_value(); 9];
+    println!("{}", sit_from(0, names.len() + 1, &mut u, &g));
 }
