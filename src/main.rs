@@ -1,4 +1,5 @@
 use std::env;
+use std::fmt;
 use std::io::prelude::*;
 use std::io::BufReader;
 
@@ -27,7 +28,7 @@ fn main() {
         let op = line.unwrap();
         screen.do_operation(&op);
     }
-    println!("{}", screen.count());
+    println!("{}\n{:?}", screen.count(), screen);
 }
 
 struct Screen {
@@ -100,6 +101,22 @@ impl Screen {
 
     fn count(&self) -> u8 {
         self.pixels.iter().sum()
+    }
+}
+
+impl fmt::Debug for Screen {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for i in 0..self.rows {
+            for j in 0..self.columns {
+                match self.pixels[i * self.columns + j] {
+                    0 => write!(f, " ").unwrap(),
+                    1 => write!(f, "#").unwrap(),
+                    _ => unreachable!()
+                }
+            }
+            writeln!(f, "").unwrap()
+        }
+        Ok(())
     }
 }
 
