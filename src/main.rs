@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use std::env;
 use std::io::prelude::*;
 use std::io::BufReader;
@@ -8,30 +10,30 @@ use hyper::client::Client;
 use hyper::client::response::Response;
 use hyper::header::Cookie;
 
-fn is_tls_supported(ip: &str) -> bool {
-    let mut x = '\0';
-    let mut y = '\0';
-    let mut z = '\0';
-    let mut supported = false;
-    let mut hypernet = false;
+fn is_ssl_supported(ip: &str) -> bool {
+    let mut a = '\0';
+    let mut b = '\0';
+    let mut in_hypernet = false;
+    let mut aba = HashSet::new();
+    let mut bab = HashSet::new();
     for c in ip.chars() {
-        if c == '[' {
-            hypernet = true;
-        }
-        if c == ']' {
-            hypernet = false;
-        }
-        if x == c && y == z && x != y {
-            if hypernet {
-                return false;
+        match c {
+            '[' => in_hypernet = true,
+            ']' => in_hypernet = false,
+            _ => {
+                if a == c && a != b && b != '[' && b != ']' {
+                    if in_hypernet {
+                        bab.insert((b, a));
+                    } else {
+                        aba.insert((a, b));
+                    }
+                }
             }
-            supported = true;
         }
-        x = y;
-        y = z;
-        z = c;
+        a = b;
+        b = c;
     }
-    supported
+    aba.intersection(&bab).count() > 0
 }
 
 fn fetch_input() -> BufReader<Response> {
@@ -50,7 +52,7 @@ fn main() {
              fetch_input()
                  .lines()
                  .map(|s| s.unwrap())
-                 .filter(|s| is_tls_supported(&s))
+                 .filter(|s| is_ssl_supported(s))
                  .count());
 }
 
@@ -60,15 +62,10 @@ mod tests {
 
     #[test]
     fn examples() {
-        assert!(is_tls_supported("abba[mnop]qrst"));
-        assert!(!is_tls_supported("abcd[bddb]xyyx"));
-        assert!(!is_tls_supported("aaaa[qwer]tyui"));
-        assert!(is_tls_supported("ioxxoj[asdfgh]zxcvbn"));
-    }
-
-    #[test]
-    fn abba_within_hypernet_sequence() {
-        assert!(!is_tls_supported("abba[xyyx]abba"));
+        assert!(is_ssl_supported("aba[bab]xyz"));
+        assert!(!is_ssl_supported("xyx[xyx]xyx"));
+        assert!(is_ssl_supported("aaa[kek]eke"));
+        assert!(is_ssl_supported("zazbz[bzb]cdb"));
     }
 
 }
