@@ -10,7 +10,7 @@ use hyper::header::Cookie;
 
 fn fetch_input() -> BufReader<Response> {
     let mut cookie = String::from("session=");
-    cookie.push_str(&env::args().nth(1).unwrap());
+    cookie.push_str(&env::args().nth(1).expect("Specify session token as first argument"));
     let client = Client::new();
     let response = client.get("http://adventofcode.com/2016/day/7/input")
         .header(Cookie(vec![cookie]))
