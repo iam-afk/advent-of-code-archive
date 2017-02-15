@@ -14,7 +14,7 @@ fn fetch_input() -> BufReader<Response> {
         .nth(1)
         .expect("Specify session token as first argument"));
     let client = Client::new();
-    let response = client.get("http://adventofcode.com/2016/day/???/input")
+    let response = client.get("http://adventofcode.com/2016/day/10/input")
         .header(Cookie(vec![cookie]))
         .send()
         .unwrap();
