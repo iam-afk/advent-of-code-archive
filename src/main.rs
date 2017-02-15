@@ -22,40 +22,45 @@ fn fetch_input() -> BufReader<Response> {
 }
 
 fn main() {
-    let mut file = String::new();
-    fetch_input().read_to_string(&mut file).unwrap();
+    let mut file = Vec::new();
+    fetch_input().read_to_end(&mut file).unwrap();
     println!("{}", decompressed_length(&file));
 }
 
-fn decompressed_length(file: &str) -> usize {
-    let mut chars = file.chars();
+const ZERO: usize = '0' as usize;
+const LPAREN: u8 = '(' as u8;
+const X: u8 = 'x' as u8;
+const RPAREN: u8 = ')' as u8;
+
+fn decompressed_length(file: &[u8]) -> usize {
     let mut count = 0usize;
-    loop {
-        match chars.next() {
-            None => break,
-            Some(x) if x.is_whitespace() => (),
-            Some('(') => {
+    let mut start = 0usize;
+    let end = file.len();
+    while start < end {
+        match file[start] {
+            LPAREN => {
                 let mut subsequent_count = 0usize;
-                while let Some(d) = chars.next() {
-                    if d == 'x' {
-                        break;
-                    }
-                    subsequent_count = subsequent_count * 10 + (d as usize - '0' as usize);
+                let mut k = start + 1;
+                while file[k] != X {
+                    subsequent_count = subsequent_count * 10 + file[k] as usize - ZERO;
+                    k += 1
                 }
                 let mut times = 0usize;
-                while let Some(d) = chars.next() {
-                    if d == ')' {
-                        break;
-                    }
-                    times = times * 10 + (d as usize - '0' as usize);
+                k += 1;
+                while file[k] != RPAREN {
+                    times = times * 10 + file[k] as usize - ZERO;
+                    k += 1;
                 }
-                count += subsequent_count * times;
-                for _ in 0..subsequent_count {
-                    chars.next();
-                }
-
+                start = k + 1;
+                count += times * decompressed_length(&file[start..start + subsequent_count]);
+                start = start + subsequent_count;
             }
-            _ => count += 1,
+            _ => {
+                if !(file[start] as char).is_whitespace() {
+                    count += 1;
+                }
+                start += 1;
+            }
         }
     }
     count
@@ -67,12 +72,13 @@ mod tests {
 
     #[test]
     fn examples() {
-        assert_eq!(decompressed_length("ADVENT"), 6);
-        assert_eq!(decompressed_length("A(1x5)BC"), 7);
-        assert_eq!(decompressed_length("(3x3)XYZ"), 9);
-        assert_eq!(decompressed_length("A(2x2)BCD(2x2)EFG"), 11);
-        assert_eq!(decompressed_length("(6x1)(1x3)A"), 6);
-        assert_eq!(decompressed_length("X(8x2)(3x3)ABCY"), 18);
+        assert_eq!(decompressed_length("(3x3)XYZ".as_bytes()), 9);
+        assert_eq!(decompressed_length("X(8x2)(3x3)ABCY".as_bytes()), 20);
+        assert_eq!(decompressed_length("(27x12)(20x12)(13x14)(7x10)(1x12)A".as_bytes()),
+                   241920);
+        assert_eq!(decompressed_length("(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN"
+                       .as_bytes()),
+                   445);
     }
 
 }
