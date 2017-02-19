@@ -27,7 +27,7 @@ fn main() {
         .lines()
         .map(|s| s.unwrap())
         .collect();
-    println!("{}", number_of_bot(instructions, 61, 17))
+    println!("{}", output_chip_values_product(instructions))
 }
 
 #[derive(Debug)]
@@ -119,7 +119,7 @@ fn pass_and_give(bots: &mut HashMap<u32, Bot>, number_of_bot: u32, value: u32) {
     give_chips(bots, number_of_bot);
 }
 
-fn number_of_bot(instructions: Vec<String>, higher_value: u32, lower_value: u32) -> u32 {
+fn output_chip_values_product(instructions: Vec<String>) -> u32 {
     let mut bots = HashMap::new();
     for instr in instructions {
         let mut tokens = instr.split_whitespace();
@@ -140,14 +140,17 @@ fn number_of_bot(instructions: Vec<String>, higher_value: u32, lower_value: u32)
             _ => unreachable!(),
         }
     }
-    for (number_of_bot, bot) in bots {
-        if let (Some(lv), Some(hv)) = (bot.lv, bot.hv) {
-            if lv == lower_value && hv == higher_value {
-                return number_of_bot;
-            }
-        }
-    }
-    unreachable!()
+    bots.values()
+        .map(|b| match b {
+            &Bot { lvd: Some(Dest::Output(0...2)),
+                   hvd: Some(Dest::Output(0...2)),
+                   lv: Some(v1),
+                   hv: Some(v2) } => v1 * v2,
+            &Bot { lvd: Some(Dest::Output(0...2)), lv: Some(v), .. } => v,
+            &Bot { hvd: Some(Dest::Output(0...2)), hv: Some(v), .. } => v,
+            _ => 1,
+        })
+        .product()
 }
 
 #[cfg(test)]
@@ -156,16 +159,18 @@ mod tests {
 
     #[test]
     fn examples() {
-        assert_eq!(number_of_bot(vec!["value 5 goes to bot 2".to_owned(),
-                                      "bot 2 gives low to bot 1 and high to bot 0".to_owned(),
-                                      "value 3 goes to bot 1".to_owned(),
-                                      "bot 1 gives low to output 1 and high to bot 0".to_owned(),
-                                      "bot 0 gives low to output 2 and high to output 0"
-                                          .to_owned(),
-                                      "value 2 goes to bot 2".to_owned()],
-                                 5,
-                                 2),
-                   2);
+        assert_eq!(output_chip_values_product(vec!["value 5 goes to bot 2".to_owned(),
+                                                   "bot 2 gives low to bot 1 and high to bot 0"
+                                                       .to_owned(),
+                                                   "value 3 goes to bot 1".to_owned(),
+                                                   "bot 1 gives low to output 1 and high to \
+                                                    bot 0"
+                                                       .to_owned(),
+                                                   "bot 0 gives low to output 2 and high to \
+                                                    output 0"
+                                                       .to_owned(),
+                                                   "value 2 goes to bot 2".to_owned()]),
+                   30);
     }
 
 }
