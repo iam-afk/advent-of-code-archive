@@ -3,8 +3,6 @@ extern crate futures;
 extern crate hyper;
 
 use std::env;
-use std::io::prelude::*;
-use std::io::BufReader;
 
 use tokio_core::reactor::Core;
 
