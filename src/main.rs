@@ -39,15 +39,12 @@ fn main() {
 
 fn sum_of_match_next(s: &str) -> u32 {
     let mut answer = 0u32;
-    let mut p = '\0';
-    for c in s.chars() {
-        if c == p {
-            answer += c as u32 - '0' as u32;
+    let v: Vec<_> = s.chars().map(|c| c as u32 - '0' as u32).collect();
+    let step = v.len() / 2;
+    for i in 0..step {
+        if v[i] == v[i + step] {
+            answer += 2 * v[i];
         }
-        p = c;
-    }
-    if s.chars().nth(0).unwrap() == p {
-        answer += p as u32 - '0' as u32;
     }
     answer
 }
@@ -58,10 +55,11 @@ mod tests {
 
     #[test]
     fn example() {
-        assert_eq!(3, sum_of_match_next("1122"));
-        assert_eq!(4, sum_of_match_next("1111"));
-        assert_eq!(0, sum_of_match_next("1234"));
-        assert_eq!(9, sum_of_match_next("91212129"));
+        assert_eq!(6, sum_of_match_next("1212"));
+        assert_eq!(0, sum_of_match_next("1221"));
+        assert_eq!(4, sum_of_match_next("123425"));
+        assert_eq!(12, sum_of_match_next("123123"));
+        assert_eq!(4, sum_of_match_next("12131415"));
     }
 
 }
