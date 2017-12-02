@@ -1,31 +1,44 @@
+extern crate tokio_core;
+extern crate futures;
+extern crate hyper;
+
 use std::env;
 use std::io::prelude::*;
 use std::io::BufReader;
 
-extern crate hyper;
+use tokio_core::reactor::Core;
 
-use hyper::client::Client;
-use hyper::client::response::Response;
+use hyper::{Client, Method};
+use hyper::client::Request;
 use hyper::header::Cookie;
 
-fn fetch_input() -> BufReader<Response> {
-    let mut cookie = String::from("session=");
-    cookie.push_str(&env::args()
-                         .nth(1)
-                         .expect("Specify session token as first argument"));
-    let client = Client::new();
-    let response = client
-        .get("http://adventofcode.com/2016/day/???/input")
-        .header(Cookie(vec![cookie]))
-        .send()
-        .unwrap();
-    BufReader::new(response)
-}
+use futures::future::Future;
+use futures::Stream;
 
 fn main() {
-    for line in fetch_input().lines() {
-        println!("{:?}", line);
-    }
+    let session = env::args().nth(1).expect(
+        "Specify session token as first argument",
+    );
+    let uri = "http://adventofcode.com/2017/day/???/input"
+        .parse()
+        .unwrap();
+
+    let mut core = Core::new().unwrap();
+    let client = Client::new(&core.handle());
+
+    let mut cookie = Cookie::new();
+    cookie.append("session", session);
+    let mut req = Request::new(Method::Get, uri);
+    req.headers_mut().set(cookie);
+    let fetch = client.request(req).and_then(|res| res.body().concat2());
+    core.run(fetch)
+        .map(|chunk| {
+            let body = String::from_utf8_lossy(&chunk);
+            for line in body.lines() {
+                println!("{:?}", line);
+            }
+        })
+        .unwrap();
 }
 
 #[cfg(test)]
