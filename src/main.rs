@@ -42,7 +42,7 @@ where
 }
 
 fn main() {
-    with_day_input(2017, ???, |input| input).unwrap();
+    with_day_input(2017, 3, |input| input).unwrap();
 }
 
 #[cfg(test)]
