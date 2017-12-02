@@ -43,16 +43,25 @@ where
 
 fn main() {
     with_day_input(2017, 2, |input| {
-        input.lines().map(|row| checksum(row)).sum::<u32>()
+        input
+            .lines()
+            .map(|row| evenly_divisible_values(row))
+            .sum::<u32>()
     }).unwrap();
 }
 
-fn checksum(s: &str) -> u32 {
+fn evenly_divisible_values(s: &str) -> u32 {
     let numbers: Vec<_> = s.trim()
         .split_whitespace()
         .map(|e| e.parse::<u32>().unwrap())
         .collect();
-    numbers.iter().max().unwrap() - numbers.iter().min().unwrap()
+    for &n in numbers.iter() {
+        match numbers.iter().find(|&&m| m != n && m % n == 0) {
+            Some(m) => return m / n,
+            _ => (),
+        }
+    }
+    0
 }
 
 #[cfg(test)]
@@ -61,9 +70,9 @@ mod tests {
 
     #[test]
     fn examples() {
-        assert_eq!(8, checksum("5 1 9 5"));
-        assert_eq!(4, checksum("7 5 3"));
-        assert_eq!(6, checksum("2 4 6 8"));
+        assert_eq!(4, evenly_divisible_values("5 9 2 8"));
+        assert_eq!(3, evenly_divisible_values("9 4 7 3"));
+        assert_eq!(2, evenly_divisible_values("3 8 6 5"));
     }
 
 }
