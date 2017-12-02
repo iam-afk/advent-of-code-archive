@@ -30,11 +30,23 @@ fn main() {
     core.run(fetch)
         .map(|chunk| {
             let body = String::from_utf8_lossy(&chunk);
-            for line in body.lines() {
-                println!("{:?}", line);
-            }
+
+            let input: Vec<&str> = body.lines().collect();
+            println!("{}", checksum(&input));
         })
         .unwrap();
+}
+
+fn checksum(s: &[&str]) -> u32 {
+    let mut answer = 0u32;
+    for row in s {
+        let numbers: Vec<_> = row.trim()
+            .split_whitespace()
+            .map(|e| e.parse::<u32>().unwrap())
+            .collect();
+        answer += numbers.iter().max().unwrap() - numbers.iter().min().unwrap();
+    }
+    answer
 }
 
 #[cfg(test)]
@@ -42,6 +54,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn examples() {}
+    fn examples() {
+        assert_eq!(18, checksum(&vec!["5 1 9 5", "7 5 3", "2 4 6 8"]));
+    }
 
 }
