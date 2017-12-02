@@ -17,9 +17,7 @@ fn main() {
     let session = env::args().nth(1).expect(
         "Specify session token as first argument",
     );
-    let uri = "http://adventofcode.com/2017/day/???/input"
-        .parse()
-        .unwrap();
+    let uri = "http://adventofcode.com/2017/day/2/input".parse().unwrap();
 
     let mut core = Core::new().unwrap();
     let client = Client::new(&core.handle());
