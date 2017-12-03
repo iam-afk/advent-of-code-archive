@@ -42,7 +42,30 @@ where
 }
 
 fn main() {
-    with_day_input(2017, 3, |input| input).unwrap();
+    with_day_input(2017, 3, |input| {
+        let data: i32 = input.trim().parse().unwrap();
+        steps(data)
+    }).unwrap();
+}
+
+fn steps(data: i32) -> i32 {
+    if data == 1 {
+        return 0;
+    }
+    let mut first: i32;
+    let mut last = 1;
+    let mut step = 1;
+    loop {
+        first = last + 1;
+        last += 4 * 2 * step;
+        if last >= data {
+            break;
+        }
+        step += 1;
+    }
+    let part = (data - first) / (2 * step);
+    let middle = first + 2 * step * part + step - 1;
+    step + (middle - data).abs()
 }
 
 #[cfg(test)]
@@ -50,6 +73,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn examples() {}
+    fn examples() {
+        assert_eq!(0, steps(1));
+        assert_eq!(3, steps(12));
+        assert_eq!(2, steps(23));
+        assert_eq!(31, steps(1024));
+    }
 
 }
