@@ -49,12 +49,14 @@ fn main() {
 }
 
 fn valid(passphrase: &str) -> bool {
-    let mut words: HashSet<&str> = HashSet::new();
+    let mut anagrams: HashSet<Vec<_>> = HashSet::new();
     for word in passphrase.split_whitespace() {
-        if words.contains(word) {
+        let mut anagram: Vec<_> = word.chars().collect();
+        anagram.sort();
+        if anagrams.contains(&anagram) {
             return false;
         }
-        words.insert(word);
+        anagrams.insert(anagram);
     }
     true
 }
@@ -65,9 +67,11 @@ mod tests {
 
     #[test]
     fn examples() {
-        assert!(valid("aa bb cc dd ee"));
-        assert!(!valid("aa bb cc dd aa"));
-        assert!(valid("aa bb cc dd aaa"));
+        assert!(valid("abcde fghij"));
+        assert!(!valid("abcde xyz ecdab"));
+        assert!(valid("a ab abc abd abf abj"));
+        assert!(valid("iiii oiii ooii oooi oooo"));
+        assert!(!valid("oiii ioii iioi iiio"));
     }
 
 }
