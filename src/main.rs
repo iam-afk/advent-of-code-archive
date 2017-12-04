@@ -2,6 +2,7 @@ extern crate tokio_core;
 extern crate futures;
 extern crate hyper;
 
+use std::collections::HashSet;
 use std::env;
 use std::error::Error;
 
@@ -42,7 +43,20 @@ where
 }
 
 fn main() {
-    with_day_input(2017, 4, |input| input.to_string()).unwrap();
+    with_day_input(2017, 4, |input| {
+        input.lines().filter(|passphrase| valid(passphrase)).count()
+    }).unwrap();
+}
+
+fn valid(passphrase: &str) -> bool {
+    let mut words: HashSet<&str> = HashSet::new();
+    for word in passphrase.split_whitespace() {
+        if words.contains(word) {
+            return false;
+        }
+        words.insert(word);
+    }
+    true
 }
 
 #[cfg(test)]
@@ -50,6 +64,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn examples() {}
+    fn examples() {
+        assert!(valid("aa bb cc dd ee"));
+        assert!(!valid("aa bb cc dd aa"));
+        assert!(valid("aa bb cc dd aaa"));
+    }
 
 }
