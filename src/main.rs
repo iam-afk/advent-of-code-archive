@@ -54,9 +54,15 @@ fn main() {
                 .lines()
                 .map(|line| line.trim().parse().unwrap())
                 .collect();
-            steps(&mut offsets)
+            steps_first_part(&mut offsets)
         },
-        |_| "not implemented",
+        |input| {
+            let mut offsets: Vec<_> = input
+                .lines()
+                .map(|line| line.trim().parse().unwrap())
+                .collect();
+            steps_second_part(&mut offsets)
+        },
     ).unwrap();
 }
 
@@ -91,7 +97,7 @@ impl FromStr for Offset {
     }
 }
 
-fn steps(offsets: &mut [Offset]) -> usize {
+fn steps_first_part(offsets: &mut [Offset]) -> usize {
     let len = offsets.len();
     let mut pos = 0usize;
     let mut count = 0usize;
@@ -119,6 +125,40 @@ fn steps(offsets: &mut [Offset]) -> usize {
     count
 }
 
+fn steps_second_part(offsets: &mut [Offset]) -> usize {
+    let len = offsets.len();
+    let mut pos = 0usize;
+    let mut count = 0usize;
+    loop {
+        count += 1;
+        let offset = &mut offsets[pos];
+        let next = match offset.jump {
+            Previous => pos.checked_sub(offset.value),
+            Next => pos.checked_add(offset.value),
+        };
+        pos = match next {
+            Some(value) if value < len => {
+                match offset.jump {
+                    Previous => offset.value -= 1,
+                    Next => {
+                        if offset.value > 2 {
+                            offset.value -= 1
+                        } else {
+                            offset.value += 1
+                        }
+                    }
+                }
+                if offset.value == 0 {
+                    offset.jump = Next;
+                }
+                value
+            }
+            _ => break,
+        }
+    }
+    count
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -127,7 +167,34 @@ mod tests {
     fn examples() {
         assert_eq!(
             5,
-            steps(
+            steps_first_part(
+                &mut [
+                    Offset {
+                        jump: Next,
+                        value: 0,
+                    },
+                    Offset {
+                        jump: Next,
+                        value: 3,
+                    },
+                    Offset {
+                        jump: Next,
+                        value: 0,
+                    },
+                    Offset {
+                        jump: Next,
+                        value: 1,
+                    },
+                    Offset {
+                        jump: Previous,
+                        value: 3,
+                    },
+                ],
+            )
+        );
+        assert_eq!(
+            10,
+            steps_second_part(
                 &mut [
                     Offset {
                         jump: Next,
