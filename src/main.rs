@@ -44,12 +44,7 @@ where
 }
 
 fn main() {
-    with_day_input(
-        2017,
-        compile_error!("put day number here!"),
-        |input| input.to_string(),
-        |_| "not implemented",
-    ).unwrap();
+    with_day_input(2017, 5, |input| input.to_string(), |_| "not implemented").unwrap();
 }
 
 #[cfg(test)]
