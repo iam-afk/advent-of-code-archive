@@ -4,6 +4,8 @@ extern crate hyper;
 
 use std::env;
 use std::error::Error;
+use std::num::ParseIntError;
+use std::str::FromStr;
 
 use tokio_core::reactor::Core;
 
@@ -44,7 +46,77 @@ where
 }
 
 fn main() {
-    with_day_input(2017, 5, |input| input.to_string(), |_| "not implemented").unwrap();
+    with_day_input(
+        2017,
+        5,
+        |input| {
+            let mut offsets: Vec<_> = input
+                .lines()
+                .map(|line| line.trim().parse().unwrap())
+                .collect();
+            steps(&mut offsets)
+        },
+        |_| "not implemented",
+    ).unwrap();
+}
+
+#[derive(Debug)]
+enum Jump {
+    Previous,
+    Next,
+}
+
+use Jump::*;
+
+#[derive(Debug)]
+struct Offset {
+    jump: Jump,
+    value: usize,
+}
+
+impl FromStr for Offset {
+    type Err = ParseIntError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let offset = match s.chars().next() {
+            Some('-') => Offset {
+                jump: Previous,
+                value: s[1..].parse()?,
+            },
+            _ => Offset {
+                jump: Next,
+                value: s.parse()?,
+            },
+        };
+        Ok(offset)
+    }
+}
+
+fn steps(offsets: &mut [Offset]) -> usize {
+    let len = offsets.len();
+    let mut pos = 0usize;
+    let mut count = 0usize;
+    loop {
+        count += 1;
+        let offset = &mut offsets[pos];
+        let next = match offset.jump {
+            Previous => pos.checked_sub(offset.value),
+            Next => pos.checked_add(offset.value),
+        };
+        pos = match next {
+            Some(value) if value < len => {
+                match offset.jump {
+                    Previous => offset.value -= 1,
+                    Next => offset.value += 1,
+                }
+                if offset.value == 0 {
+                    offset.jump = Next;
+                }
+                value
+            }
+            _ => break,
+        }
+    }
+    count
 }
 
 #[cfg(test)]
@@ -52,6 +124,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn examples() {}
+    fn examples() {
+        assert_eq!(
+            5,
+            steps(
+                &mut [
+                    Offset {
+                        jump: Next,
+                        value: 0,
+                    },
+                    Offset {
+                        jump: Next,
+                        value: 3,
+                    },
+                    Offset {
+                        jump: Next,
+                        value: 0,
+                    },
+                    Offset {
+                        jump: Next,
+                        value: 1,
+                    },
+                    Offset {
+                        jump: Previous,
+                        value: 3,
+                    },
+                ],
+            )
+        );
+    }
 
 }
