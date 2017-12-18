@@ -53,10 +53,8 @@ struct ParseError {
     message: String,
 }
 
-impl ParseError {
-    fn new(message: String) -> ParseError {
-        ParseError { message: message }
-    }
+macro_rules! parse_error {
+    ($msg:expr, $s:ident) => (ParseError { message: format!("{}: {}", $msg, $s) });
 }
 
 #[derive(Debug, PartialEq)]
@@ -77,14 +75,54 @@ impl FromStr for Op {
                     _ => unreachable!(),
                 }
             }
-            _ => Err(ParseError::new(format!("bad register: {}", s))),
+            _ => Err(parse_error!("bad register", s)),
         }
     }
 }
 
 #[derive(Debug, PartialEq)]
 enum Inst {
+    Snd(Op),
     Set(char, Op),
+    Add(char, Op),
+    Mul(char, Op),
+    Mod(char, Op),
+    Rcv(Op),
+    Jgz(Op, isize),
+}
+
+macro_rules! inst {
+    ($inst:ident, val, $comp:expr, $s:ident) => (
+        $comp.next()
+            .ok_or(parse_error!("expected argument", $s))
+            .and_then(|arg| arg.parse::<Op>())
+            .and_then(|x| Ok(Inst::$inst(x)))
+    );
+    ($inst:ident, reg + val, $comp:expr, $s:ident) => (
+        $comp.next()
+            .ok_or(parse_error!("expected first argument", $s))
+            .and_then(|arg| match arg.parse::<Op>()? {
+                Op::Reg(x) => Ok(x),
+                _ => Err(parse_error!("first argument should be a register", $s)),
+            })
+            .and_then(|x| {
+                $comp.next()
+                    .ok_or(parse_error!("expected second argument", $s))
+                    .and_then(|arg| arg.parse::<Op>())
+                    .and_then(|y| Ok(Inst::$inst(x, y)))
+            })
+    );
+    ($inst:ident, reg + offset, $comp:expr, $s:ident) => (
+        $comp.next()
+            .ok_or(parse_error!("expected first argument", $s))
+            .and_then(|arg| arg.parse::<Op>())
+            .and_then(|x| {
+                $comp.next()
+                    .ok_or(parse_error!("expected second argument", $s))
+                    .and_then(|arg| arg.parse::<isize>().map_err(|_| parse_error!("offset expected", $s)))
+                    .and_then(|y| Ok(Inst::$inst(x, y)))
+            })
+    );
 }
 
 impl FromStr for Inst {
@@ -92,30 +130,15 @@ impl FromStr for Inst {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut v = s.split_whitespace();
         match v.next() {
-            Some("set") => {
-                v.next()
-                    .ok_or(ParseError::new(format!("expected first argument: {}", s)))
-                    .and_then(|arg| arg.parse::<Op>())
-                    .and_then(|v| if let Op::Reg(x) = v {
-                        Ok(x)
-                    } else {
-                        Err(ParseError::new(
-                            format!("first argument should be a register: {}", s),
-                        ))
-                    })
-                    .and_then(|x| {
-                        Ok((
-                            x,
-                            v.next().ok_or(ParseError::new(
-                                format!("expected second argument: {}", s),
-                            ))?,
-                        ))
-                    })
-                    .and_then(|(x, arg)| Ok((x, arg.parse::<Op>()?)))
-                    .and_then(|(x, y)| Ok(Inst::Set(x, y)))
-            }
+            Some("snd") => inst!(Snd, val, v, s),
+            Some("set") => inst!(Set, reg + val, v, s),
+            Some("add") => inst!(Add, reg + val, v, s),
+            Some("mul") => inst!(Mul, reg + val, v, s),
+            Some("mod") => inst!(Mod, reg + val, v, s),
+            Some("rcv") => inst!(Rcv, val, v, s),
+            Some("jgz") => inst!(Jgz, reg + offset, v, s),
             Some(_) => unimplemented!(),
-            None => Err(ParseError::new("instruction expected".to_string())),
+            None => Err(parse_error!("instruction expected".to_string(), s)),
         }
     }
 }
@@ -126,7 +149,13 @@ mod tests {
 
     #[test]
     fn parse() {
+        assert_eq!(Inst::Snd(Op::Reg('a')), "snd a".parse().unwrap());
         assert_eq!(Inst::Set('a', Op::Val(1)), "set a 1".parse().unwrap());
+        assert_eq!(Inst::Add('a', Op::Val(2)), "add a 2".parse().unwrap());
+        assert_eq!(Inst::Mul('a', Op::Reg('a')), "mul a a".parse().unwrap());
+        assert_eq!(Inst::Mod('a', Op::Val(5)), "mod a 5".parse().unwrap());
+        assert_eq!(Inst::Rcv(Op::Reg('a')), "rcv a".parse().unwrap());
+        assert_eq!(Inst::Jgz(Op::Reg('a'), -1), "jgz a -1".parse().unwrap());
     }
 
 }
