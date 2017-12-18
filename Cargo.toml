@@ -2,8 +2,3 @@
 name = "advent_of_code"
 version = "0.1.0"
 authors = ["Andrey Manzharov <andreyrmg@gmail.com>"]
-
-[dependencies]
-tokio-core = "0.1"
-futures = "0.1"
-hyper = "0.11"
