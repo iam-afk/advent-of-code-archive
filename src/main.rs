@@ -4,6 +4,7 @@ extern crate hyper;
 
 use std::env;
 use std::error::Error;
+use std::str::FromStr;
 
 use tokio_core::reactor::Core;
 
@@ -47,11 +48,85 @@ fn main() {
     with_day_input(2017, 18, |input| input.to_string(), |_| "not implemented").unwrap();
 }
 
+#[derive(Debug)]
+struct ParseError {
+    message: String,
+}
+
+impl ParseError {
+    fn new(message: String) -> ParseError {
+        ParseError { message: message }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+enum Op {
+    Reg(char),
+    Val(i64),
+}
+
+impl FromStr for Op {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse::<i64>() {
+            Ok(x) => Ok(Op::Val(x)),
+            Err(_) if s.len() == 1 => {
+                match s.chars().next() {
+                    Some(x) => Ok(Op::Reg(x)),
+                    _ => unreachable!(),
+                }
+            }
+            _ => Err(ParseError::new(format!("bad register: {}", s))),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+enum Inst {
+    Set(char, Op),
+}
+
+impl FromStr for Inst {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut v = s.split_whitespace();
+        match v.next() {
+            Some("set") => {
+                v.next()
+                    .ok_or(ParseError::new(format!("expected first argument: {}", s)))
+                    .and_then(|arg| arg.parse::<Op>())
+                    .and_then(|v| if let Op::Reg(x) = v {
+                        Ok(x)
+                    } else {
+                        Err(ParseError::new(
+                            format!("first argument should be a register: {}", s),
+                        ))
+                    })
+                    .and_then(|x| {
+                        Ok((
+                            x,
+                            v.next().ok_or(ParseError::new(
+                                format!("expected second argument: {}", s),
+                            ))?,
+                        ))
+                    })
+                    .and_then(|(x, arg)| Ok((x, arg.parse::<Op>()?)))
+                    .and_then(|(x, y)| Ok(Inst::Set(x, y)))
+            }
+            Some(_) => unimplemented!(),
+            None => Err(ParseError::new("instruction expected".to_string())),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn examples() {}
+    fn parse() {
+        assert_eq!(Inst::Set('a', Op::Val(1)), "set a 1".parse().unwrap());
+    }
 
 }
