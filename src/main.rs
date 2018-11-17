@@ -1,23 +1,24 @@
-use std::error::Error;
-use std::io::{Read, stdin};
+use std::fmt;
+use std::io;
+use std::io::prelude::*;
 
-fn with_day_input<F1, T1, F2, T2>(f1: F1, f2: F2) -> Result<(), Box<Error>>
-where
-    F1: Fn(&str) -> T1,
-    F2: Fn(&str) -> T2,
-    T1: std::fmt::Display,
-    T2: std::fmt::Display,
-{
-    let mut stdin = stdin();
+fn main() -> Result<(), io::Error> {
+    let mut stdin = io::stdin();
     let mut input = String::new();
     stdin.read_to_string(&mut input)?;
-    println!(" *: {}", f1(&input));
-    println!("**: {}", f2(&input));
+
+    println!(" *: {}", first_star(&input));
+    println!("**: {}", second_star(&input));
+
     Ok(())
 }
 
-fn main() {
-    with_day_input(|input| input.to_string(), |input| input.to_string()).unwrap();
+fn first_star(input: &str) -> impl fmt::Display {
+    input.to_string()
+}
+
+fn second_star(input: &str) -> impl fmt::Display {
+    input.to_string()
 }
 
 #[cfg(test)]
