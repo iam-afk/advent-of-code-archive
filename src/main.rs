@@ -19,7 +19,7 @@ fn first_star(input: &str) -> impl fmt::Display {
 }
 
 fn second_star(input: &str) -> impl fmt::Display {
-    input.to_string()
+    iterate(18, input)
 }
 
 fn iterate(n: usize, input: &str) -> usize {
