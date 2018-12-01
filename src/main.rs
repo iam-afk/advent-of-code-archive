@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fmt;
 use std::io;
 use std::io::prelude::*;
@@ -19,7 +20,16 @@ fn first_star(input: &str) -> impl fmt::Display {
 }
 
 fn second_star(input: &str) -> impl fmt::Display {
-    input.to_string()
+    let changes: Vec<_> = input.lines().map(|line| line.parse().unwrap()).collect();
+    let mut reached = HashSet::new();
+    let mut current = 0i32;
+    for change in changes.iter().cycle() {
+        if !reached.insert(current) {
+            return current;
+        }
+        current += change
+    }
+    unreachable!()
 }
 
 #[cfg(test)]
