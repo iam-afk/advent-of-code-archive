@@ -14,7 +14,8 @@ fn main() -> Result<(), io::Error> {
 }
 
 fn first_star(input: &str) -> impl fmt::Display {
-    input.to_string()
+    let result: i32 = input.lines().map(|line| line.parse::<i32>().unwrap()).sum();
+    result
 }
 
 fn second_star(input: &str) -> impl fmt::Display {
