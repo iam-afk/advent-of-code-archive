@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 use std::io;
 use std::io::prelude::*;
@@ -20,11 +21,12 @@ fn first_star(input: &str) -> impl fmt::Display {
     closest(&particles)
 }
 
-fn second_star(_input: &str) -> impl fmt::Display {
-    ""
+fn second_star(input: &str) -> impl fmt::Display {
+    let mut particles: Vec<Particle> = input.lines().map(|line| line.parse().unwrap()).collect();
+    count_remaining(&mut particles)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
 struct V3 {
     x: i64,
     y: i64,
@@ -70,16 +72,61 @@ fn closest(particles: &[Particle]) -> usize {
     return index;
 }
 
+fn count_remaining(particles: &mut [Particle]) -> usize {
+    let mut alive = particles.len();
+    let mut destroyed = vec![false; alive];
+    for _ in 0..1_000 {
+        let mut at_position = HashMap::with_capacity(alive);
+        for (i, p) in particles
+            .iter_mut()
+            .enumerate()
+            .filter(|&(i, _)| !destroyed[i])
+        {
+            p.v.x += p.a.x;
+            p.v.y += p.a.y;
+            p.v.z += p.a.z;
+            p.p.x += p.v.x;
+            p.p.y += p.v.y;
+            p.p.z += p.v.z;
+            let at = at_position
+                .entry(p.p.clone())
+                .or_insert(Vec::with_capacity(4));
+            at.push(i);
+        }
+
+        for indexes in at_position.values() {
+            if indexes.len() > 1 {
+                for i in indexes {
+                    destroyed[*i] = true;
+                    alive -= 1;
+                }
+            }
+        }
+    }
+    alive
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn examples() {
+    fn example_1() {
         let p0: Particle = "p=<3,0,0>, v=<2,0,0>, a=<-1,0,0>".parse().unwrap();
         let p1: Particle = "p=<4,0,0>, v=<0,0,0>, a=<-2,0,0>".parse().unwrap();
 
         assert_eq!(0, closest(&[p0, p1]));
+    }
+
+    #[test]
+    fn example_2() {
+        let mut particles: Vec<Particle> = vec![
+            "p=<-6,0,0>, v=<3,0,0>, a=<0,0,0>".parse().unwrap(),
+            "p=<-4,0,0>, v=<2,0,0>, a=<0,0,0>".parse().unwrap(),
+            "p=<-2,0,0>, v=<1,0,0>, a=<0,0,0>".parse().unwrap(),
+            "p=<3,0,0>, v=<-1,0,0>, a=<0,0,0>".parse().unwrap(),
+        ];
+        assert_eq!(1, count_remaining(&mut particles));
     }
 
 }
