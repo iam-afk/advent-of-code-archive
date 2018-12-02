@@ -13,12 +13,12 @@ fn main() -> Result<(), io::Error> {
     Ok(())
 }
 
-fn first_star(input: &str) -> impl fmt::Display {
-    input.to_string()
+fn first_star(_input: &str) -> impl fmt::Display {
+    ""
 }
 
-fn second_star(input: &str) -> impl fmt::Display {
-    input.to_string()
+fn second_star(_input: &str) -> impl fmt::Display {
+    ""
 }
 
 #[cfg(test)]
