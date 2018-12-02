@@ -23,29 +23,19 @@ fn second_star(input: &str) -> impl fmt::Display {
     common_correct_id(&v)
 }
 
-fn checksum(ids: &[&str]) -> usize {
+fn checksum<'a>(ids: &[&str]) -> usize {
     let mut two = 0usize;
     let mut three = 0usize;
 
     for id in ids {
         let mut letters = [0usize; 26];
-        for c in id.chars() {
-            letters[c as usize - 'a' as usize] += 1;
-        }
-        let mut exactly_two = false;
-        let mut exactly_three = false;
-        for &count in &letters {
-            if count == 2 {
-                exactly_two = true
-            }
-            if count == 3 {
-                exactly_three = true
-            }
-        }
-        if exactly_two {
+        id.chars()
+            .map(|c| c as usize - 'a' as usize)
+            .for_each(|i| letters[i] += 1);
+        if letters.into_iter().any(|&n| n == 2) {
             two += 1
         }
-        if exactly_three {
+        if letters.into_iter().any(|&n| n == 3) {
             three += 1
         }
     }
