@@ -18,8 +18,9 @@ fn first_star(input: &str) -> impl fmt::Display {
     checksum(&v)
 }
 
-fn second_star(_input: &str) -> impl fmt::Display {
-    ""
+fn second_star(input: &str) -> impl fmt::Display {
+    let v: Vec<_> = input.lines().collect();
+    common_correct_id(&v)
 }
 
 fn checksum(ids: &[&str]) -> usize {
@@ -51,15 +52,40 @@ fn checksum(ids: &[&str]) -> usize {
     two * three
 }
 
+fn common_correct_id(ids: &[&str]) -> String {
+    for id1 in ids {
+        for id2 in ids {
+            let common_id: String = id1
+                .chars()
+                .zip(id2.chars())
+                .filter(|(c1, c2)| c1 == c2)
+                .map(|(_, c)| c)
+                .collect();
+            if common_id.len() == id1.len() - 1 {
+                return common_id;
+            }
+        }
+    }
+    unreachable!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn examples() {
+    fn examples_1() {
         assert_eq!(
             12,
             checksum(&["abcdef", "bababc", "abbcde", "abcccd", "aabcdd", "abcdee", "ababab",])
+        );
+    }
+
+    #[test]
+    fn examples_2() {
+        assert_eq!(
+            "fgij",
+            common_correct_id(&["abcde", "fghij", "klmno", "pqrst", "fguij", "axcye", "wvxyz",])
         );
     }
 
