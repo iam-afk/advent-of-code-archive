@@ -20,11 +20,13 @@ fn first_star(input: &str) -> impl fmt::Display {
     count_within_two_or_more(&rectangles)
 }
 
-fn second_star(_input: &str) -> impl fmt::Display {
-    ""
+fn second_star(input: &str) -> impl fmt::Display {
+    let rectangles = read_rectangles(input.lines());
+    find_id_of_not_overlapped_claim(&rectangles)
 }
 
 struct Rectangle {
+    id: usize,
     left: usize,
     top: usize,
     width: usize,
@@ -38,6 +40,7 @@ impl str::FromStr for Rectangle {
             .splitn(7, |c| c == ' ' || c == ',' || c == ':' || c == 'x')
             .collect();
         Ok(Rectangle {
+            id: v[0][1..].parse()?,
             left: v[2].parse()?,
             top: v[3].parse()?,
             width: v[5].parse()?,
@@ -71,6 +74,31 @@ fn count_within_two_or_more(rectangles: &[Rectangle]) -> usize {
         .count()
 }
 
+fn find_id_of_not_overlapped_claim(rectangles: &[Rectangle]) -> usize {
+    let mut fabric = vec![vec![0usize; 1000]; 1000];
+    let mut overlapped = vec![true];
+    for r in rectangles {
+        let mut current = false;
+        for i in 0..r.height {
+            for j in 0..r.width {
+                let id = fabric[r.top + i][r.left + j];
+                if id > 0 {
+                    overlapped[id] = true;
+                    current = true;
+                }
+                fabric[r.top + i][r.left + j] = r.id;
+            }
+        }
+        overlapped.push(current);
+    }
+    overlapped
+        .iter()
+        .enumerate()
+        .find(|&(_, v)| !v)
+        .map(|(i, _)| i)
+        .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -80,6 +108,7 @@ mod tests {
         let rectangles =
             read_rectangles(vec!["#1 @ 1,3: 4x4", "#2 @ 3,1: 4x4", "#3 @ 5,5: 2x2"].into_iter());
         assert_eq!(4, count_within_two_or_more(&rectangles));
+        assert_eq!(3, find_id_of_not_overlapped_claim(&rectangles));
     }
 
 }
