@@ -22,8 +22,10 @@ fn first_star(input: &str) -> impl fmt::Display {
     strategy_1(&guards)
 }
 
-fn second_star(_input: &str) -> impl fmt::Display {
-    ""
+fn second_star(input: &str) -> impl fmt::Display {
+    let mut lines: Vec<_> = input.lines().collect();
+    let guards = parse_guards(&mut lines);
+    strategy_2(&guards)
 }
 
 enum Event {
@@ -71,20 +73,25 @@ fn parse_guards(lines: &mut [&str]) -> Vec<Guard> {
     result
 }
 
-fn strategy_1(guards: &[Guard]) -> usize {
-    let mut guard_minutes = HashMap::new();
+fn minutes_by_guard(guards: &[Guard]) -> HashMap<usize, Vec<usize>> {
+    let mut result = HashMap::new();
     for guard in guards {
-        let mut minutes = guard_minutes.entry(guard.id).or_insert(vec![0usize; 60]);
+        let mut minutes = result.entry(guard.id).or_insert(vec![0usize; 60]);
         for c in minutes[guard.fall..guard.wake].iter_mut() {
             *c += 1;
         }
     }
-    let id = guard_minutes
+    result
+}
+
+fn strategy_1(guards: &[Guard]) -> usize {
+    let by_guard = minutes_by_guard(guards);
+    let id = by_guard
         .iter()
         .max_by_key(|&(_, minutes)| minutes.into_iter().filter(|&&v| v > 0).sum::<usize>())
         .map(|(id, _)| id)
         .unwrap();
-    let minutes = guard_minutes.get(id).unwrap();
+    let minutes = by_guard.get(id).unwrap();
     let minute = minutes
         .iter()
         .enumerate()
@@ -93,6 +100,25 @@ fn strategy_1(guards: &[Guard]) -> usize {
         .unwrap();
 
     id * minute
+}
+
+fn strategy_2(guards: &[Guard]) -> usize {
+    let by_guard = minutes_by_guard(guards);
+    let max_by_minute: Vec<_> = (0..60)
+        .map(|m| {
+            by_guard
+                .iter()
+                .map(|(id, minutes)| (id, minutes[m]))
+                .max_by_key(|&(_, v)| v)
+                .unwrap()
+        }).collect();
+
+    max_by_minute
+        .iter()
+        .enumerate()
+        .max_by_key(|&(_, (_, v))| v)
+        .map(|(m, &(id, _))| m * id)
+        .unwrap()
 }
 
 #[cfg(test)]
@@ -121,6 +147,7 @@ mod tests {
             "[1518-11-05 00:55] wakes up",
         ]);
         assert_eq!(10 * 24, strategy_1(&guards));
+        assert_eq!(99 * 45, strategy_2(&guards));
     }
 
 }
