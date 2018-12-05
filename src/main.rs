@@ -14,17 +14,20 @@ fn main() -> Result<(), io::Error> {
 }
 
 fn first_star(input: &str) -> impl fmt::Display {
-    react(input.trim())
+    react(input.trim().bytes())
 }
 
-fn second_star(_input: &str) -> impl fmt::Display {
-    ""
+fn second_star(input: &str) -> impl fmt::Display {
+    shortest(input.trim())
 }
 
-fn react(polymer: &str) -> usize {
+fn react<C>(polymer: C) -> usize
+where
+    C: Iterator<Item = u8>,
+{
     let mut v = vec![];
-    for unit in polymer.chars() {
-        let &previous = v.last().unwrap_or(&'.');
+    for unit in polymer {
+        let &previous = v.last().unwrap_or(&0u8);
         if unit != previous && unit.to_ascii_lowercase() == previous.to_ascii_lowercase() {
             v.pop();
         } else {
@@ -34,13 +37,21 @@ fn react(polymer: &str) -> usize {
     v.len()
 }
 
+fn shortest(polymer: &str) -> usize {
+    ('a' as u8..='z' as u8)
+        .map(|x| react(polymer.bytes().filter(|c| c.to_ascii_lowercase() != x)))
+        .min()
+        .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn examples() {
-        assert_eq!(10, react("dabAcCaCBAcCcaDA"));
+        assert_eq!(10, react("dabAcCaCBAcCcaDA".bytes()));
+        assert_eq!(4, shortest("dabAcCaCBAcCcaDA"));
     }
 
 }
