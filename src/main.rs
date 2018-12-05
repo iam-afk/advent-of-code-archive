@@ -4,9 +4,10 @@ use std::io::prelude::*;
 
 fn main() -> Result<(), io::Error> {
     let mut stdin = io::stdin();
-    let mut input = String::new();
-    stdin.read_to_string(&mut input)?;
+    let mut buffer = String::new();
+    stdin.read_to_string(&mut buffer)?;
 
+    let input = buffer.trim_end();
     println!(" *: {}", first_star(&input));
     println!("**: {}", second_star(&input));
 
