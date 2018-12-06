@@ -22,8 +22,9 @@ fn first_star(input: &str) -> impl fmt::Display {
     largest(&points)
 }
 
-fn second_star(_input: &str) -> impl fmt::Display {
-    ""
+fn second_star(input: &str) -> impl fmt::Display {
+    let points: Vec<_> = input.lines().map(|line| line.parse().unwrap()).collect();
+    total(&points, 10_000)
 }
 
 #[derive(Hash, PartialEq, Eq)]
@@ -39,6 +40,10 @@ impl str::FromStr for Point {
     }
 }
 
+fn manhattan(p: &Point, row: i32, col: i32) -> i32 {
+    (p.0 - row).abs() + (p.1 - col).abs()
+}
+
 fn largest(points: &[Point]) -> u32 {
     let mut areas = HashMap::new();
     for point in points.iter() {
@@ -52,10 +57,7 @@ fn largest(points: &[Point]) -> u32 {
 
     for r in min_row..=max_row {
         for c in min_col..=max_col {
-            let mut v: Vec<_> = points
-                .iter()
-                .map(|p| (p, (p.0 - r).abs() + (p.1 - c).abs()))
-                .collect();
+            let mut v: Vec<_> = points.iter().map(|p| (p, manhattan(p, r, c))).collect();
             v.sort_by_key(|&(_, d)| d);
             if v[0].1 < v[1].1 {
                 if r == min_row || r == max_row || c == min_col || c == max_col {
@@ -68,6 +70,25 @@ fn largest(points: &[Point]) -> u32 {
     }
 
     *areas.values().max().unwrap()
+}
+
+fn total(points: &[Point], distance: i32) -> u32 {
+    let gap = distance / points.len() as i32 + 1;
+    let min_row = points.iter().map(|p| p.0).min().unwrap() - gap;
+    let max_row = points.iter().map(|p| p.0).max().unwrap() + gap;
+    let min_col = points.iter().map(|p| p.1).min().unwrap() - gap;
+    let max_col = points.iter().map(|p| p.1).max().unwrap() + gap;
+
+    let mut result = 0u32;
+    for r in min_row..=max_row {
+        for c in min_col..=max_col {
+            let total: i32 = points.iter().map(|p| manhattan(p, r, c)).sum();
+            if total < distance {
+                result += 1;
+            }
+        }
+    }
+    result
 }
 
 #[cfg(test)]
@@ -85,6 +106,7 @@ mod tests {
             Point(8, 9),
         ];
         assert_eq!(17, largest(&points));
+        assert_eq!(16, total(&points, 32));
     }
 
 }
