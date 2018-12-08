@@ -20,8 +20,9 @@ fn first_star(input: &str) -> impl fmt::Display {
     find_order(read_instructions(&lines))
 }
 
-fn second_star(_input: &str) -> impl fmt::Display {
-    ""
+fn second_star(input: &str) -> impl fmt::Display {
+    let lines: Vec<_> = input.lines().collect();
+    find_time(read_instructions(&lines), 60, 5)
 }
 
 #[derive(Debug)]
@@ -77,12 +78,48 @@ fn find_order(mut instructions: Instructions) -> String {
     order
 }
 
+fn find_time(mut instructions: Instructions, duration: usize, worker_count: usize) -> usize {
+    let n = instructions.steps.iter().filter(|&&s| s).count();
+    let mut workers = vec![(0usize, n); worker_count];
+    let mut completed = 0;
+    loop {
+        workers.sort();
+        let &(t, _) = workers.first().unwrap();
+        for &(ct, s) in workers.iter() {
+            if s < n && ct == t {
+                match instructions.required_for.get(&s) {
+                    Some(v) => {
+                        for &t in v {
+                            instructions.amount[t] -= 1;
+                        }
+                    }
+                    _ => (),
+                }
+                completed += 1;
+                if completed == n {
+                    return workers.iter().map(|&(t, _)| t).max().unwrap();
+                }
+            }
+        }
+        workers[0] = match (0..n)
+            .filter(|&s| instructions.steps[s] && instructions.amount[s] == 0)
+            .min()
+        {
+            Some(s) => {
+                instructions.steps[s] = false;
+                (t + s + duration + 1, s)
+            }
+            _ => (t + 1, n),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn examples() {
+    fn example_1() {
         let instructions = read_instructions(&[
             "Step C must be finished before step A can begin.",
             "Step C must be finished before step F can begin.",
@@ -93,6 +130,20 @@ mod tests {
             "Step F must be finished before step E can begin.",
         ]);
         assert_eq!("CABDFE", find_order(instructions));
+    }
+
+    #[test]
+    fn example_2() {
+        let instructions = read_instructions(&[
+            "Step C must be finished before step A can begin.",
+            "Step C must be finished before step F can begin.",
+            "Step A must be finished before step B can begin.",
+            "Step A must be finished before step D can begin.",
+            "Step B must be finished before step E can begin.",
+            "Step D must be finished before step E can begin.",
+            "Step F must be finished before step E can begin.",
+        ]);
+        assert_eq!(15, find_time(instructions, 0, 2));
     }
 
 }
